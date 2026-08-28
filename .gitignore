@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+
+# VS Code
+.vscode/
+
+# Reports
+reports/*.json
+reports/*.pdf
+
+# Test files
+tests/test_data/*.dxf
+tests/test_data/*.dwg
+
+# OS
+.DS_Store
+Thumbs.db
