@@ -19,6 +19,7 @@ from nfpa_validator import NFPAValidator
 from saudi_validator import SaudiCodeValidator
 from report_generator import ReportGenerator
 from cost_calculator import CostCalculator
+from excel_exporter import ExcelExporter
 
 logging.basicConfig(
     level=logging.INFO,
@@ -69,14 +70,18 @@ class FireCADAnalyzer:
         saudi_validator = SaudiCodeValidator(self.entities)
         self.validation_results['saudi'] = saudi_validator.validate_all()
         
-        # 5. حساب التكاليف
+        # 4. حساب التكاليف
         cost_calculator = CostCalculator(self.entities)
         cost_summary = cost_calculator.calculate_all()
         
         # طباعة ملخص التكاليف
         cost_calculator.print_summary()
         
-        # 4. توليد التقارير
+        # 5. تصدير Excel
+        excel_exporter = ExcelExporter(cost_summary, project_name=Path(file_path).stem)
+        excel_path = excel_exporter.export()
+        
+        # 6. توليد التقارير
         report_generator = ReportGenerator(
             file_path=file_path,
             entities=self.entities,
@@ -106,7 +111,8 @@ class FireCADAnalyzer:
             'costs': cost_summary,
             'reports': {
                 'json': str(json_path),
-                'pdf': str(pdf_path)
+                'pdf': str(pdf_path),
+                'excel': excel_path
             }
         }
     
@@ -142,8 +148,8 @@ def main():
     )
     parser.add_argument(
         '--output', '-o',
-        default='reports',
-        help='مجلد التقارير الناتجة (افتراضياً: reports)'
+        default=os.path.join(os.path.dirname(__file__), '..', 'reports'),
+        help='مجلد التقارير الناتجة'
     )
     parser.add_argument(
         '--hazard',

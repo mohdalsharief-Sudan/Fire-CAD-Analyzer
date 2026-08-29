@@ -4,14 +4,46 @@
 """
 
 import json
+import os
 from typing import Dict, Any, List
 from datetime import datetime
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.units import cm
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+import arabic_reshaper
+from bidi.algorithm import get_display
+
+
+# تسجيل خط يدعم العربية
+FONT_PATH = None
+for path in [
+    r"C:\Windows\Fonts\tahoma.ttf",
+    r"C:\Windows\Fonts\arial.ttf",
+    r"C:\Windows\Fonts\calibri.ttf",
+]:
+    if os.path.exists(path):
+        FONT_PATH = path
+        break
+
+if FONT_PATH:
+    pdfmetrics.registerFont(TTFont('ArabicFont', FONT_PATH))
+    ARABIC_FONT = 'ArabicFont'
+else:
+    ARABIC_FONT = 'Helvetica'
+
+
+def ar(text):
+    """تحويل النص العربي للعرض الصحيح"""
+    try:
+        reshaped = arabic_reshaper.reshape(str(text))
+        return get_display(reshaped)
+    except:
+        return str(text)
 
 
 class ReportGenerator:
@@ -65,7 +97,10 @@ class ReportGenerator:
     
     def generate_pdf_report(self) -> str:
         """توليد تقرير PDF احترافي"""
-        output_path = f"reports/fire_system_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        # حفظ في المجلد الرئيسي reports/
+        reports_dir = os.path.join(os.path.dirname(__file__), '..', 'reports')
+        os.makedirs(reports_dir, exist_ok=True)
+        output_path = os.path.join(reports_dir, f"fire_system_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf")
         
         doc = SimpleDocTemplate(
             output_path,
@@ -81,7 +116,8 @@ class ReportGenerator:
         title_style = ParagraphStyle(
             'CustomTitle',
             parent=styles['Heading1'],
-            fontSize=24,
+            fontName=ARABIC_FONT,
+            fontSize=22,
             textColor=colors.HexColor('#1B4F72'),
             alignment=TA_CENTER,
             spaceAfter=30
@@ -89,6 +125,7 @@ class ReportGenerator:
         heading_style = ParagraphStyle(
             'CustomHeading',
             parent=styles['Heading2'],
+            fontName=ARABIC_FONT,
             fontSize=16,
             textColor=colors.HexColor('#2874A6'),
             spaceBefore=20,
@@ -97,31 +134,32 @@ class ReportGenerator:
         normal_style = ParagraphStyle(
             'CustomNormal',
             parent=styles['Normal'],
+            fontName=ARABIC_FONT,
             fontSize=10,
             leading=14
         )
         
-        # بناء المحتوى
+        # بناء المحتوى - كل النصوص تمر عبر ar()
         story = []
         
         # العنوان
-        story.append(Paragraph("تقرير تحليل نظام مكافحة الحريق", title_style))
-        story.append(Paragraph(f"ملف CAD: {self.file_path}", normal_style))
-        story.append(Paragraph(f"تاريخ التحليل: {self.timestamp}", normal_style))
+        story.append(Paragraph(ar("تقرير تحليل نظام مكافحة الحريق"), title_style))
+        story.append(Paragraph(ar(f"ملف CAD: {self.file_path}"), normal_style))
+        story.append(Paragraph(ar(f"تاريخ التحليل: {self.timestamp}"), normal_style))
         story.append(Spacer(1, 20))
         
         # ملخص العناصر
-        story.append(Paragraph("ملخص العناصر المستخرجة", heading_style))
+        story.append(Paragraph(ar("ملخص العناصر المستخرجة"), heading_style))
         
         summary_data = [
-            ['العنصر', 'العدد', 'ملاحظات'],
-            ['الرشاشات', str(len(self.entities.get('sprinklers', []))), ''],
-            ['المواسير', str(len(self.entities.get('pipes', []))), 
-             f"الطول الكلي: {sum(p.get('length', 0) for p in self.entities.get('pipes', [])):.2f} م"],
-            ['المضخات', str(len(self.entities.get('pumps', []))), ''],
-            ['الخزانات', str(len(self.entities.get('tanks', []))), 
-             f"الحجم الكلي: {sum(t.get('volume', 0) for t in self.entities.get('tanks', [])):.2f} م³"],
-            ['الغرف', str(len(self.entities.get('rooms', []))), ''],
+            [ar('العنصر'), ar('العدد'), ar('ملاحظات')],
+            [ar('الرشاشات'), str(len(self.entities.get('sprinklers', []))), ''],
+            [ar('المواسير'), str(len(self.entities.get('pipes', []))), 
+             ar(f"الطول الكلي: {sum(p.get('length', 0) for p in self.entities.get('pipes', [])):.2f} م")],
+            [ar('المضخات'), str(len(self.entities.get('pumps', []))), ''],
+            [ar('الخزانات'), str(len(self.entities.get('tanks', []))), 
+             ar(f"الحجم الكلي: {sum(t.get('volume', 0) for t in self.entities.get('tanks', [])):.2f} م³")],
+            [ar('الغرف'), str(len(self.entities.get('rooms', []))), ''],
         ]
         
         summary_table = Table(summary_data, colWidths=[5*cm, 3*cm, 9*cm])
@@ -129,7 +167,7 @@ class ReportGenerator:
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1B4F72')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 0), (-1, -1), ARABIC_FONT),
             ('FONTSIZE', (0, 0), (-1, 0), 12),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
             ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#EBF5FB')),
@@ -140,14 +178,14 @@ class ReportGenerator:
         story.append(Spacer(1, 30))
         
         # نتائج التحقق
-        story.append(Paragraph("نتائج التحقق من المعايير", heading_style))
+        story.append(Paragraph(ar("نتائج التحقق من المعايير"), heading_style))
         
         # مخالفات NFPA
         nfpa_violations = self.validation_results.get('nfpa', {}).get('violations', [])
-        story.append(Paragraph(f"مخالفات NFPA: {len(nfpa_violations)}", normal_style))
+        story.append(Paragraph(ar(f"مخالفات NFPA: {len(nfpa_violations)}"), normal_style))
         
         if nfpa_violations:
-            for i, violation in enumerate(nfpa_violations, 1):
+            for violation in nfpa_violations[:20]:  # أول 20 فقط
                 severity_color = {
                     'critical': '#C0392B',
                     'high': '#E67E22',
@@ -156,7 +194,7 @@ class ReportGenerator:
                 }.get(violation.get('severity', 'low'), '#27AE60')
                 
                 story.append(Paragraph(
-                    f"<font color='{severity_color}'>• {violation.get('message', '')}</font>",
+                    ar(f"• {violation.get('message', '')}"),
                     normal_style
                 ))
         
@@ -164,14 +202,11 @@ class ReportGenerator:
         
         # مخالفات الكود السعودي
         saudi_violations = self.validation_results.get('saudi', {}).get('violations', [])
-        story.append(Paragraph(f"مخالفات الكود السعودي: {len(saudi_violations)}", normal_style))
+        story.append(Paragraph(ar(f"مخالفات الكود السعودي: {len(saudi_violations)}"), normal_style))
         
         if saudi_violations:
             for violation in saudi_violations:
-                story.append(Paragraph(
-                    f"• {violation.get('message', '')}",
-                    normal_style
-                ))
+                story.append(Paragraph(ar(f"• {violation.get('message', '')}"), normal_style))
         
         # بناء PDF
         doc.build(story)
