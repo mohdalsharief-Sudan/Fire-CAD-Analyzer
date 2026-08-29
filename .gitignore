@@ -11,6 +11,8 @@ env/
 # Reports
 reports/*.json
 reports/*.pdf
+reports/*.xlsx
+src/reports/
 
 # Test files
 tests/test_data/*.dxf
