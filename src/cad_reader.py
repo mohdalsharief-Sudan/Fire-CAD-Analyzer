@@ -1,7 +1,7 @@
 # src/cad_reader.py
 """
 قارئ ملفات CAD المتخصص في أنظمة مكافحة الحريق
-يدعم ملفات DXF مباشرة وDWG عن طريق التحويل
+يدعم DXF مباشرة وDWG عن طريق التحويل
 """
 
 import ezdxf
@@ -21,29 +21,9 @@ class CADReader:
     def __init__(self):
         self.doc = None
         self.modelspace = None
-        self.entities = {
-            'sprinklers': [],
-            'pipes': [],
-            'pumps': [],
-            'valves': [],
-            'tanks': [],
-            'rooms': [],
-            'walls': [],
-            'texts': [],
-            'blocks': [],
-            'unknown': []
-        }
-        
+    
     def read_file(self, file_path: str) -> bool:
-        """
-        قراءة ملف CAD (DXF مباشرة أو DWG بالتحويل)
-        
-        Args:
-            file_path: مسار الملف
-            
-        Returns:
-            bool: نجاح القراءة
-        """
+        """قراءة ملف CAD (DXF أو DWG)"""
         file_extension = Path(file_path).suffix.lower()
         
         if file_extension == '.dxf':
@@ -51,49 +31,92 @@ class CADReader:
         elif file_extension == '.dwg':
             return self._read_dwg(file_path)
         else:
-            logger.error(f"صيغة ملف غير مدعومة: {file_extension}")
+            logger.error(f"صيغة غير مدعومة: {file_extension}")
             return False
     
     def _read_dxf(self, file_path: str) -> bool:
-        """قراءة ملف DXF مباشرة"""
+        """قراءة DXF مباشرة"""
         try:
             self.doc = ezdxf.readfile(file_path)
             self.modelspace = self.doc.modelspace()
             logger.info(f"تم قراءة ملف DXF بنجاح: {file_path}")
             return True
         except Exception as e:
-            logger.error(f"فشل قراءة ملف DXF: {e}")
+            logger.error(f"فشل قراءة DXF: {e}")
             return False
     
     def _read_dwg(self, file_path: str) -> bool:
-        """
-        قراءة ملف DWG عن طريق تحويله إلى DXF
-        يتطلب برنامج ODA File Converter أو LibreCAD
-        """
-        # محاولة العثور على محول DWG إلى DXF
-        converters = [
-            'ODAFileConverter',  # ODA File Converter
-            'dwg2dxf',          # LibreCAD
-            'dwgread',          # LibreDWG
+        """قراءة DWG - تحويل تلقائي ثم قراءة DXF"""
+        logger.info(f"محاولة تحويل DWG إلى DXF: {file_path}")
+        
+        # إنشاء مجلدات مؤقتة للتحويل
+        base_dir = os.path.dirname(file_path)
+        input_dir = os.path.join(base_dir, "dwg_input")
+        output_dir = os.path.join(base_dir, "dwg_output")
+        os.makedirs(input_dir, exist_ok=True)
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # نسخ الملف إلى مجلد الإدخال
+        import shutil
+        file_name = os.path.basename(file_path)
+        temp_dwg = os.path.join(input_dir, file_name)
+        shutil.copy2(file_path, temp_dwg)
+        
+        output_name = os.path.splitext(file_name)[0]
+        dxf_path = os.path.join(output_dir, output_name + ".dxf")
+        
+        # البحث عن ODA
+        oda_paths = [
+            r"C:\Program Files\ODA\ODAFileConverter 27.1.0\ODAFileConverter.exe",
+            r"C:\Program Files\ODA\ODAFileConverter\ODAFileConverter.exe",
         ]
         
-        for converter in converters:
-            try:
-                # محاولة استخدام المحول
-                output_path = file_path.replace('.dwg', '.dxf')
-                cmd = [converter, file_path, output_path]
-                
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-                
-                if result.returncode == 0 and os.path.exists(output_path):
-                    logger.info(f"تم تحويل DWG إلى DXF باستخدام {converter}")
-                    return self._read_dxf(output_path)
-            except FileNotFoundError:
-                continue
-            except Exception as e:
-                logger.warning(f"فشل التحويل باستخدام {converter}: {e}")
+        for oda_path in oda_paths:
+            if os.path.exists(oda_path):
+                try:
+                    # ODA: مجلد إدخال ≠ مجلد إخراج
+                    cmd = [
+                        oda_path,
+                        input_dir,      # مجلد الإدخال
+                        output_dir,     # مجلد الإخراج (مختلف!)
+                        "ACAD2018",
+                        "DXF",
+                        "0",
+                        "*.dwg",
+                        ""
+                    ]
+                    
+                    logger.info(f"تحويل من: {input_dir}")
+                    logger.info(f"إلى: {output_dir}")
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+                    
+                    if os.path.exists(dxf_path):
+                        logger.info(f"تم التحويل: {dxf_path}")
+                        return self._read_dxf(dxf_path)
+                    else:
+                        logger.warning(f"stdout: {result.stdout}")
+                        logger.warning(f"stderr: {result.stderr}")
+                        
+                except Exception as e:
+                    logger.warning(f"فشل ODA: {e}")
         
-        logger.error("لم يتم العثور على محول DWG. يرجى تثبيت ODA File Converter")
+        logger.error("فشل تحويل DWG")
+        return False
+    
+    def check_dwg_support(self) -> bool:
+        """التحقق من توفر محول DWG"""
+        oda_paths = [
+            r"C:\Program Files\ODA\ODAFileConverter 27.1.0\ODAFileConverter.exe",
+            r"C:\Program Files\ODA\ODAFileConverter\ODAFileConverter.exe",
+            r"C:\Program Files (x86)\ODA\ODAFileConverter\ODAFileConverter.exe",
+        ]
+        
+        for path in oda_paths:
+            if os.path.exists(path):
+                logger.info(f"✅ محول DWG متوفر: {path}")
+                return True
+        
+        logger.warning("⚠️ لا يوجد محول DWG")
         return False
     
     def get_document_info(self) -> Dict[str, Any]:
@@ -105,8 +128,6 @@ class CADReader:
         return {
             'dxf_version': self.doc.dxfversion,
             'units': header.get('$INSUNITS', 0),
-            'created': header.get('$TDCREATE', 'غير معروف'),
-            'modified': header.get('$TDUPDATE', 'غير معروف'),
             'layers': len(self.doc.layers),
             'entities': len(self.modelspace),
         }

@@ -49,6 +49,13 @@ class FireCADAnalyzer:
         Returns:
             Dict: نتائج التحليل الكاملة
         """
+        # التحقق من دعم DWG
+        file_extension = Path(file_path).suffix.lower()
+        if file_extension == '.dwg':
+            if not self.reader.check_dwg_support():
+                logger.error("لا يمكن قراءة DWG - يرجى تثبيت ODA File Converter")
+                return {}
+            
         logger.info(f"بدء تحليل الملف: {file_path}")
         
         # 1. قراءة الملف
