@@ -18,6 +18,7 @@ from entity_extractor import EntityExtractor
 from nfpa_validator import NFPAValidator
 from saudi_validator import SaudiCodeValidator
 from report_generator import ReportGenerator
+from cost_calculator import CostCalculator
 
 logging.basicConfig(
     level=logging.INFO,
@@ -68,6 +69,13 @@ class FireCADAnalyzer:
         saudi_validator = SaudiCodeValidator(self.entities)
         self.validation_results['saudi'] = saudi_validator.validate_all()
         
+        # 5. حساب التكاليف
+        cost_calculator = CostCalculator(self.entities)
+        cost_summary = cost_calculator.calculate_all()
+        
+        # طباعة ملخص التكاليف
+        cost_calculator.print_summary()
+        
         # 4. توليد التقارير
         report_generator = ReportGenerator(
             file_path=file_path,
@@ -95,6 +103,7 @@ class FireCADAnalyzer:
         return {
             'entities': self.entities,
             'validation': self.validation_results,
+            'costs': cost_summary,
             'reports': {
                 'json': str(json_path),
                 'pdf': str(pdf_path)
@@ -112,6 +121,7 @@ class FireCADAnalyzer:
             'total_pumps': len(self.entities.get('pumps', [])),
             'total_tanks': len(self.entities.get('tanks', [])),
             'total_rooms': len(self.entities.get('rooms', [])),
+            'total_cost': self.validation_results.get('costs', {}).get('total_cost', 0),
             'violations': {
                 'nfpa': len(self.validation_results.get('nfpa', {}).get('violations', [])),
                 'saudi': len(self.validation_results.get('saudi', {}).get('violations', [])),
