@@ -3,7 +3,6 @@
 البرنامج الرئيسي لتحليل ملفات CAD لأنظمة مكافحة الحريق
 """
 
-# src/main.py
 import sys
 import os
 import json
@@ -11,10 +10,9 @@ import logging
 from pathlib import Path
 from typing import Dict, Any
 
-# إضافة المسار الحالي إلى مسار البحث
-sys.path.append(os.path.dirname(__file__))
+# إضافة مسار src إلى sys.path
+sys.path.insert(0, os.path.dirname(__file__))
 
-# استيراد الوحدات المحلية
 from cad_reader import CADReader
 from entity_extractor import EntityExtractor
 from nfpa_validator import NFPAValidator
@@ -37,12 +35,13 @@ class FireCADAnalyzer:
         self.entities = {}
         self.validation_results = {}
     
-    def analyze_file(self, file_path: str, output_dir: str = "reports") -> Dict[str, Any]:
+    def analyze_file(self, file_path: str, hazard_type: str = None, output_dir: str = "reports") -> Dict[str, Any]:
         """
         تحليل ملف CAD كامل
         
         Args:
             file_path: مسار ملف CAD
+            hazard_type: تصنيف المخاطر (light, oh1, oh2, eh1, eh2) - اختياري
             output_dir: مجلد التقارير الناتجة
             
         Returns:
@@ -63,7 +62,7 @@ class FireCADAnalyzer:
         self.entities = self.extractor.extract_all()
         
         # 3. التحقق من المعايير
-        nfpa_validator = NFPAValidator(self.entities)
+        nfpa_validator = NFPAValidator(self.entities, hazard_type)
         self.validation_results['nfpa'] = nfpa_validator.validate_all()
         
         saudi_validator = SaudiCodeValidator(self.entities)
@@ -137,6 +136,11 @@ def main():
         help='مجلد التقارير الناتجة (افتراضياً: reports)'
     )
     parser.add_argument(
+        '--hazard',
+        default=None,
+        help='تصنيف المخاطر (light, oh1, oh2, eh1, eh2)'
+    )
+    parser.add_argument(
         '--verbose', '-v',
         action='store_true',
         help='عرض معلومات تفصيلية'
@@ -150,7 +154,11 @@ def main():
     analyzer = FireCADAnalyzer()
     
     try:
-        results = analyzer.analyze_file(args.file_path, args.output)
+        results = analyzer.analyze_file(
+            args.file_path,
+            hazard_type=args.hazard,
+            output_dir=args.output
+        )
         
         if results:
             print("\n" + "="*60)

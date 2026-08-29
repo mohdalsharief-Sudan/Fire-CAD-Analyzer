@@ -7,18 +7,31 @@
 class NFPA13:
     """معايير NFPA 13 لأنظمة الرشاشات"""
     
-    # التباعد الأقصى للرشاشات (متر)
-    MAX_SPACING = {
-        'light_hazard': 4.6,
-        'ordinary_hazard': 4.6,
-        'extra_hazard': 3.7,
-    }
-    
-    # المساحة القصوى المغطاة لكل رشاش (متر مربع)
+    # المساحة القصوى لكل رشاش (متر مربع)
     MAX_COVERAGE = {
         'light_hazard': 18.6,
-        'ordinary_hazard': 12.1,
-        'extra_hazard': 9.3,
+        'ordinary_hazard_g1': 12.1,
+        'ordinary_hazard_g2': 12.1,
+        'extra_hazard_g1': 9.3,
+        'extra_hazard_g2': 9.3,
+    }
+    
+    # التباعد الأقصى (متر)
+    MAX_SPACING = {
+        'light_hazard': 4.6,
+        'ordinary_hazard_g1': 4.6,
+        'ordinary_hazard_g2': 4.6,
+        'extra_hazard_g1': 3.7,
+        'extra_hazard_g2': 3.7,
+    }
+    
+    # كثافة التدفق (مم/دقيقة)
+    DENSITY = {
+        'light_hazard': 2.0,
+        'ordinary_hazard_g1': 4.0,
+        'ordinary_hazard_g2': 6.0,
+        'extra_hazard_g1': 8.0,
+        'extra_hazard_g2': 12.0,
     }
     
     # معاملات K القياسية

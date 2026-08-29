@@ -4,71 +4,99 @@
 """
 
 import math
+import logging
 from typing import List, Dict, Any, Tuple
 from utils.constants import NFPA13
+from hazard_classifier import HazardClassifier
+
+logger = logging.getLogger(__name__)
 
 
 class NFPAValidator:
     """مدقق معايير NFPA 13"""
     
-    def __init__(self, entities: Dict[str, List[Dict]]):
+    def __init__(self, entities, hazard_type=None):
         self.entities = entities
         self.violations = []
         self.warnings = []
+        
+        # تصنيف المخاطر
+        self.classifier = HazardClassifier(entities)
+        
+        if hazard_type:
+            self.hazard_type = self.classifier.classify_manual(hazard_type)
+        else:
+            self.hazard_type = self.classifier.classify_auto()
+        
+        logger.info(f"تصنيف المخاطر: {self.hazard_type}")
     
-    def validate_all(self) -> Dict[str, List[Dict]]:
+    def validate_all(self):
         """تشغيل جميع الفحوصات"""
-        self.check_sprinkler_spacing()
-        self.check_wall_distance()
         self.check_coverage_area()
+        self.check_wall_distance()
         self.check_pipe_sizes()
         self.check_pump_presence()
         self.check_water_supply()
         
         return {
             'violations': self.violations,
-            'warnings': self.warnings
+            'warnings': self.warnings,
+            'hazard_type': self.hazard_type,
+            'hazard_info': self.classifier.get_info(),
         }
     
-    def check_sprinkler_spacing(self):
-            """فحص التباعد بين الرشاشات المتجاورة فقط"""
-            sprinklers = self.entities.get('sprinklers', [])
-            hazard_type = self._determine_hazard_type()
-            max_spacing = NFPA13.MAX_SPACING.get(hazard_type, 4.6)
-            
-            # تجميع الرشاشات حسب المنطقة (Z)
-            zones = {}
-            for i, sprinkler in enumerate(sprinklers):
-                z = round(sprinkler['position'][2], 1)  # تجميع حسب الارتفاع
-                if z not in zones:
-                    zones[z] = []
-                zones[z].append((i, sprinkler))
-            
-            # فحص التباعد داخل كل منطقة فقط
-            for zone, zone_sprinklers in zones.items():
-                for i in range(len(zone_sprinklers)):
-                    for j in range(i + 1, len(zone_sprinklers)):
-                        idx1, sprinkler1 = zone_sprinklers[i]
-                        idx2, sprinkler2 = zone_sprinklers[j]
-                        
-                        distance = self._calculate_distance(
-                            sprinkler1['position'],
-                            sprinkler2['position']
-                        )
-                        
-                        # فقط إذا كانا قريبين نسبياً (أقل من ضعف الحد الأقصى)
-                        if distance <= max_spacing * 3:
-                            if distance > max_spacing:
-                                self.violations.append({
-                                    'type': 'spacing_violation',
-                                    'severity': 'medium',
-                                    'message': f'التباعد بين الرشاشات يتجاوز الحد الأقصى: {distance:.2f} متر',
-                                    'sprinklers': [idx1, idx2],
-                                    'distance': distance,
-                                    'max_allowed': max_spacing,
-                                    'standard': 'NFPA 13'
-                                })
-                                break  # يكفي مخالفة واحدة لكل رشاش
+    def check_coverage_area(self):
+        """فحص مساحة التغطية لكل رشاش"""
+        sprinklers = self.entities.get('sprinklers', [])
+        max_coverage = NFPA13.MAX_COVERAGE.get(self.hazard_type, 12.1)
+        
+        # تجميع حسب Z
+        zones = {}
+        for sprinkler in sprinklers:
+            z = round(sprinkler['position'][2], 1)
+            if z not in zones:
+                zones[z] = []
+            zones[z].append(sprinkler)
+        
+        for zone, zone_sprinklers in zones.items():
+            for sprinkler in zone_sprinklers:
+                coverage = self._calculate_sprinkler_coverage(sprinkler, zone_sprinklers)
+                
+                if coverage > max_coverage:
+                    self.violations.append({
+                        'type': 'coverage_violation',
+                        'severity': 'high',
+                        'message': f'مساحة تغطية الرشاش تتجاوز الحد: {coverage:.2f} م² (الحد: {max_coverage} م²)',
+                        'position': sprinkler['position'],
+                        'coverage': coverage,
+                        'max_allowed': max_coverage,
+                        'standard': 'NFPA 13'
+                    })
+    
+    def _calculate_sprinkler_coverage(self, sprinkler, all_sprinklers):
+        """حساب مساحة التغطية الفعلية"""
+        distances = []
+        
+        for other in all_sprinklers:
+            if other is sprinkler:
+                continue
+            d = self._calculate_distance(sprinkler['position'], other['position'])
+            if d < 10:
+                distances.append(d)
+        
+        if not distances:
+            return 0
+        
+        distances.sort()
+        nearest = distances[:4]
+        
+        if len(nearest) < 4:
+            nearest = nearest + [nearest[-1]] * (4 - len(nearest))
+        
+        avg_distance = sum(nearest) / len(nearest)
+        coverage = avg_distance ** 2
+        
+        return coverage
     
     def check_wall_distance(self):
         """فحص المسافة من الجدران"""
@@ -78,49 +106,19 @@ class NFPAValidator:
         if not walls:
             self.warnings.append({
                 'type': 'no_walls',
-                'message': 'لم يتم العثور على جدران في الرسم - تم تخطي فحص المسافة من الجدران'
+                'message': 'لم يتم العثور على جدران - تم تخطي فحص المسافة'
             })
             return
         
         for sprinkler in sprinklers:
             min_distance = self._calculate_min_wall_distance(sprinkler['position'], walls)
-            
             if min_distance > NFPA13.MAX_WALL_DISTANCE:
                 self.violations.append({
                     'type': 'wall_distance_violation',
                     'severity': 'medium',
-                    'message': f'المسافة من الجدار تتجاوز الحد الأقصى: {min_distance:.2f} متر',
-                    'position': sprinkler['position'],
+                    'message': f'المسافة من الجدار: {min_distance:.2f} متر',
                     'standard': 'NFPA 13'
                 })
-    
-    def check_coverage_area(self):
-        """فحص منطقة التغطية لكل رشاش"""
-        sprinklers = self.entities.get('sprinklers', [])
-        rooms = self.entities.get('rooms', [])
-        hazard_type = self._determine_hazard_type()
-        max_coverage = NFPA13.MAX_COVERAGE.get(hazard_type, 12.1)
-        
-        if rooms and sprinklers:
-            for room in rooms:
-                room_area = room['area']
-                sprinklers_in_room = self._count_sprinklers_in_polygon(
-                    sprinklers,
-                    room['points']
-                )
-                
-                if sprinklers_in_room > 0:
-                    coverage_per_sprinkler = room_area / sprinklers_in_room
-                    
-                    if coverage_per_sprinkler > max_coverage:
-                        self.violations.append({
-                            'type': 'coverage_violation',
-                            'severity': 'high',
-                            'message': f'مساحة التغطية لكل رشاش تتجاوز الحد: {coverage_per_sprinkler:.2f} متر مربع',
-                            'area': room_area,
-                            'sprinkler_count': sprinklers_in_room,
-                            'standard': 'NFPA 13'
-                        })
     
     def check_pipe_sizes(self):
         """فحص أقطار المواسير"""
@@ -128,87 +126,48 @@ class NFPAValidator:
         
         for pipe in pipes:
             diameter = pipe.get('diameter', 0)
-            
             if diameter < 25:
                 self.violations.append({
                     'type': 'pipe_size_violation',
                     'severity': 'high',
-                    'message': f'قطر الماسورة غير مقبول: {diameter} مم (الحد الأدنى 25 مم)',
-                    'standard': 'NFPA 13'
-                })
-            elif diameter not in NFPA13.PIPE_DIAMETERS:
-                self.warnings.append({
-                    'type': 'non_standard_pipe',
-                    'message': f'قطر الماسورة غير قياسي: {diameter} مم',
+                    'message': f'قطر الماسورة غير مقبول: {diameter} مم',
                     'standard': 'NFPA 13'
                 })
     
     def check_pump_presence(self):
-        """فحص وجود مضخة الحريق"""
+        """فحص وجود مضخة"""
         pumps = self.entities.get('pumps', [])
-        
         if not pumps:
             self.violations.append({
                 'type': 'no_fire_pump',
                 'severity': 'critical',
-                'message': 'لم يتم العثور على مضخة حريق في الرسم',
+                'message': 'لم يتم العثور على مضخة حريق',
                 'standard': 'NFPA 20'
             })
     
     def check_water_supply(self):
         """فحص مصدر المياه"""
         tanks = self.entities.get('tanks', [])
-        
-        if tanks:
-            total_volume = sum(tank['volume'] for tank in tanks)
-            min_volume = 30  # متر مكعب (تقريبي)
-            
-            if total_volume < min_volume:
-                self.violations.append({
-                    'type': 'insufficient_water_supply',
-                    'severity': 'high',
-                    'message': f'سعة الخزان غير كافية: {total_volume:.1f} متر مكعب',
-                    'standard': 'NFPA 13'
-                })
-        else:
+        if not tanks:
             self.warnings.append({
                 'type': 'no_water_tank',
-                'message': 'لم يتم العثور على خزان مياه - قد يكون مصدر المياه خارجي'
+                'message': 'لم يتم العثور على خزان مياه'
             })
     
-    def _determine_hazard_type(self) -> str:
-        """تحديد نوع المخاطر من خصائص الرسم"""
-        sprinklers = self.entities.get('sprinklers', [])
-        
-        # إذا كان هناك أنظمة غاز FM-200، فالمخاطر أعلى
-        gas_systems = self.entities.get('gas_systems', [])
-        if gas_systems:
-            return 'extra_hazard'
-        
-        # فحص معامل K للرشاشات
-        if sprinklers:
-            k_factors = [s.get('k_factor', 5.6) for s in sprinklers]
-            avg_k = sum(k_factors) / len(k_factors)
-            
-            if avg_k >= 11.2:
-                return 'extra_hazard'
-            elif avg_k >= 8.0:
-                return 'ordinary_hazard'
-        
-        return 'ordinary_hazard'
+    def _determine_hazard_type(self):
+        """محدد نوع المخاطر"""
+        return self.hazard_type
     
-    def _calculate_distance(self, point1: Tuple[float, float, float], 
-                           point2: Tuple[float, float, float]) -> float:
-        """حساب المسافة بين نقطتين"""
+    def _calculate_distance(self, point1, point2):
+        """حساب المسافة"""
         return math.sqrt(
-            (point2[0] - point1[0])**2 + 
-            (point2[1] - point1[1])**2 + 
+            (point2[0] - point1[0])**2 +
+            (point2[1] - point1[1])**2 +
             (point2[2] - point1[2])**2
         )
     
-    def _calculate_min_wall_distance(self, point: Tuple[float, float, float], 
-                                    walls: List[Dict]) -> float:
-        """حساب أقرب مسافة إلى جدار"""
+    def _calculate_min_wall_distance(self, point, walls):
+        """حساب أقرب مسافة لجدار"""
         from shapely.geometry import Point, LineString
         
         p = Point(point[0], point[1])
@@ -224,18 +183,3 @@ class NFPAValidator:
                 min_distance = min(min_distance, distance)
         
         return min_distance if min_distance != float('inf') else 0
-    
-    def _count_sprinklers_in_polygon(self, sprinklers: List[Dict], 
-                                    polygon_points: List[Tuple[float, float]]) -> int:
-        """عد الرشاشات داخل مضلع (غرفة)"""
-        from shapely.geometry import Point, Polygon
-        
-        polygon = Polygon(polygon_points)
-        count = 0
-        
-        for sprinkler in sprinklers:
-            point = Point(sprinkler['position'][0], sprinkler['position'][1])
-            if polygon.contains(point):
-                count += 1
-        
-        return count
