@@ -20,7 +20,7 @@ from gas_calculator import GasSuppressionCalculator
 from hydraulic_calculator import HydraulicCalculator
 from integrated_report import IntegratedReport
 from excel_exporter import ExcelExporter
-
+from pricing_exporter import PricingExporter
 
 class MainInterface:
     """الواجهة الموحدة"""
@@ -143,8 +143,22 @@ class MainInterface:
             # تصدير Excel؟
             self._ask_export_excel(cost_summary, os.path.basename(file_path))
             
+            # تصدير إلى Fire-Pricing
+            self._ask_export_pricing(cost_summary, entities, os.path.basename(file_path))
+            
         except Exception as e:
             print(f"❌ خطأ: {e}")
+    
+    def _ask_export_pricing(self, cost_summary, entities, project_name):
+        """سؤال عن التصدير إلى Fire-Pricing"""
+        export = input("\nتصدير إلى Fire-Pricing؟ (y/n): ").strip().lower()
+        if export == 'y':
+            exporter = PricingExporter()
+            path = exporter.export_for_fire_pricing(
+                cost_summary, entities, project_name
+            )
+            print(f"✅ تم التصدير: {path}")
+            print("📋 يمكنك الآن استيراد هذا الملف في Fire-Pricing")
     
     def _display_cad_results(self, entities, nfpa_results, saudi_results):
         """عرض نتائج CAD"""

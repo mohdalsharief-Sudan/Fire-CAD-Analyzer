@@ -1,0 +1,244 @@
+{
+  "project": {
+    "name": "Testing.dxf",
+    "date": "2026-08-30",
+    "source": "Fire-CAD-Analyzer"
+  },
+  "items": [
+    {
+      "description": "رشاشات pendant",
+      "quantity": 1086,
+      "unit": "رشاش",
+      "unit_price": 45,
+      "total": 48870
+    },
+    {
+      "description": "مواسير فولاذ 50 مم",
+      "quantity": 4992.61,
+      "unit": "متر",
+      "unit_price": 70,
+      "total": 349483.0
+    },
+    {
+      "description": "مضخة electric",
+      "quantity": 1,
+      "unit": "مضخة",
+      "unit_price": 45000,
+      "total": 45000
+    },
+    {
+      "description": "مضخة diesel",
+      "quantity": 1,
+      "unit": "مضخة",
+      "unit_price": 65000,
+      "total": 65000
+    },
+    {
+      "description": "مضخة jockey",
+      "quantity": 1,
+      "unit": "مضخة",
+      "unit_price": 12000,
+      "total": 12000
+    },
+    {
+      "description": "نظام FM-200",
+      "quantity": 1,
+      "unit": "نظام",
+      "unit_price": 8500,
+      "total": 8500
+    },
+    {
+      "description": "نظام FM-200",
+      "quantity": 1,
+      "unit": "نظام",
+      "unit_price": 8500,
+      "total": 8500
+    },
+    {
+      "description": "نظام FM-200",
+      "quantity": 1,
+      "unit": "نظام",
+      "unit_price": 8500,
+      "total": 8500
+    },
+    {
+      "description": "نظام FM-200",
+      "quantity": 1,
+      "unit": "نظام",
+      "unit_price": 8500,
+      "total": 8500
+    },
+    {
+      "description": "نظام FM-200",
+      "quantity": 1,
+      "unit": "نظام",
+      "unit_price": 8500,
+      "total": 8500
+    },
+    {
+      "description": "نظام FM-200",
+      "quantity": 1,
+      "unit": "نظام",
+      "unit_price": 8500,
+      "total": 8500
+    },
+    {
+      "description": "نظام FM-200",
+      "quantity": 1,
+      "unit": "نظام",
+      "unit_price": 8500,
+      "total": 8500
+    },
+    {
+      "description": "نظام FM-200",
+      "quantity": 1,
+      "unit": "نظام",
+      "unit_price": 8500,
+      "total": 8500
+    },
+    {
+      "description": "نظام FM-200",
+      "quantity": 1,
+      "unit": "نظام",
+      "unit_price": 8500,
+      "total": 8500
+    },
+    {
+      "description": "نظام FM-200",
+      "quantity": 1,
+      "unit": "نظام",
+      "unit_price": 8500,
+      "total": 8500
+    },
+    {
+      "description": "نظام FM-200",
+      "quantity": 1,
+      "unit": "نظام",
+      "unit_price": 8500,
+      "total": 8500
+    },
+    {
+      "description": "نظام FM-200",
+      "quantity": 1,
+      "unit": "نظام",
+      "unit_price": 8500,
+      "total": 8500
+    },
+    {
+      "description": "نظام FM-200",
+      "quantity": 1,
+      "unit": "نظام",
+      "unit_price": 8500,
+      "total": 8500
+    },
+    {
+      "description": "نظام FM-200",
+      "quantity": 1,
+      "unit": "نظام",
+      "unit_price": 8500,
+      "total": 8500
+    },
+    {
+      "description": "نظام FM-200",
+      "quantity": 1,
+      "unit": "نظام",
+      "unit_price": 8500,
+      "total": 8500
+    },
+    {
+      "description": "نظام FM-200",
+      "quantity": 1,
+      "unit": "نظام",
+      "unit_price": 8500,
+      "total": 8500
+    },
+    {
+      "description": "نظام FM-200",
+      "quantity": 1,
+      "unit": "نظام",
+      "unit_price": 8500,
+      "total": 8500
+    },
+    {
+      "description": "نظام FM-200",
+      "quantity": 1,
+      "unit": "نظام",
+      "unit_price": 8500,
+      "total": 8500
+    },
+    {
+      "description": "نظام FM-200",
+      "quantity": 1,
+      "unit": "نظام",
+      "unit_price": 8500,
+      "total": 8500
+    },
+    {
+      "description": "نظام FM-200",
+      "quantity": 1,
+      "unit": "نظام",
+      "unit_price": 8500,
+      "total": 8500
+    },
+    {
+      "description": "خزانات خرطوم",
+      "quantity": 8,
+      "unit": "خزانة",
+      "unit_price": 850,
+      "total": 6800
+    },
+    {
+      "description": "صمامات",
+      "quantity": 3,
+      "unit": "صمام",
+      "unit_price": 350,
+      "total": 1050
+    },
+    {
+      "description": "تكلفة التركيب (35%)",
+      "quantity": 1,
+      "unit": "بند",
+      "unit_price": 244371.0498586835,
+      "total": 244371.0498586835
+    },
+    {
+      "description": "التصميم والهندسة (10%)",
+      "quantity": 1,
+      "unit": "بند",
+      "unit_price": 69820.29995962387,
+      "total": 69820.29995962387
+    },
+    {
+      "description": "مصاريف إدارية (15%)",
+      "quantity": 1,
+      "unit": "بند",
+      "unit_price": 104730.44993943578,
+      "total": 104730.44993943578
+    },
+    {
+      "description": "هامش الربح (20%)",
+      "quantity": 1,
+      "unit": "بند",
+      "unit_price": 223424.95987079633,
+      "total": 223424.95987079633
+    },
+    {
+      "description": "احتياطي (5%)",
+      "quantity": 1,
+      "unit": "بند",
+      "unit_price": 34910.14997981193,
+      "total": 34910.14997981193
+    }
+  ],
+  "total_material_cost": 698203.0,
+  "total_labor_cost": 244371.05,
+  "total_cost": 1375459.91,
+  "currency": "SAR",
+  "summary": {
+    "sprinklers": 1086,
+    "pipes": 1357,
+    "pumps": 3,
+    "gas_systems": 20,
+    "hose_cabinets": 8
+  }
+}
