@@ -181,6 +181,11 @@ class GasInterface:
     def _calculate_manual(self):
         """حساب يدوي كامل"""
         gas_type = self._select_gas_type()
+        # اختيار المصنع
+        manufacturer = self._select_manufacturer(gas_type)
+        print(f"\n✅ المصنع المختار: {manufacturer}")
+        
+        protection_area = self._select_protection_area()
         protection_area = self._select_protection_area()
         dimensions = self._get_room_dimensions()
         temperature = self._get_temperature()
@@ -205,6 +210,29 @@ class GasInterface:
             altitude_m=altitude,
             safety_factor=safety_factor
         )
+        
+    def _select_manufacturer(self, gas_type: str):
+        """اختيار المصنع"""
+        from manufacturers import MANUFACTURERS, list_manufacturers
+        
+        # عرض المصنعين الذين يدعمون هذا الغاز
+        available = [name for name, info in MANUFACTURERS.items() 
+                     if gas_type in info['gas_types']]
+        
+        print("\nاختر المصنع:")
+        for i, name in enumerate(available, 1):
+            info = MANUFACTURERS[name]
+            print(f"{i}. {name} ({info['country']})")
+        
+        while True:
+            choice = input(f"اختر (1-{len(available)}): ").strip()
+            try:
+                idx = int(choice) - 1
+                if 0 <= idx < len(available):
+                    return available[idx]
+            except ValueError:
+                pass
+            print("اختيار غير صحيح!")    
         
         # طباعة النتائج
         self.calc.print_calculation(results)
