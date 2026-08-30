@@ -22,8 +22,10 @@ class IntegratedReport:
         """إضافة تكاليف CAD"""
         self.cad_costs = cost_summary
     
-    def add_gas_calculation(self, gas_results: Dict[str, Any]):
+    def add_gas_calculation(self, gas_results):
         """إضافة حساب نظام غاز"""
+        if not hasattr(self, 'gas_costs'):
+            self.gas_costs = []
         self.gas_costs.append(gas_results)
     
     def add_manual_item(self, item_name: str, quantity: float, unit_price: float):
