@@ -1,0 +1,77 @@
+{
+  "name": "sample",
+  "quoteNo": "CAD-20260831",
+  "date": "2026-08-31",
+  "source": "Fire-CAD-Analyzer",
+  "materials": [
+    {
+      "name": "مواسير فولاذ 50 مم",
+      "qty": 25.65,
+      "unit": "متر",
+      "unitCost": 70
+    },
+    {
+      "name": "خزانات خرطوم",
+      "qty": 8,
+      "unit": "خزانة",
+      "unitCost": 850
+    },
+    {
+      "name": "صمامات",
+      "qty": 4,
+      "unit": "صمام",
+      "unitCost": 350
+    }
+  ],
+  "equipment": [],
+  "labor": [
+    {
+      "name": "تكلفة التركيب (35%)",
+      "workers": 1,
+      "days": 1,
+      "dailyCost": 3498.41
+    }
+  ],
+  "services": [
+    {
+      "name": "التصميم والهندسة (10%)",
+      "value": 999.55,
+      "type": "fixed",
+      "amount": 999.55
+    },
+    {
+      "name": "مصاريف إدارية (15%)",
+      "value": 1499.32,
+      "type": "fixed",
+      "amount": 1499.32
+    },
+    {
+      "name": "هامش الربح (20%)",
+      "value": 3198.55,
+      "type": "fixed",
+      "amount": 3198.55
+    },
+    {
+      "name": "احتياطي (5%)",
+      "value": 499.77,
+      "type": "fixed",
+      "amount": 499.77
+    }
+  ],
+  "totals": {
+    "baseCost": 9995.47,
+    "materialsTotal": 9995.5,
+    "eqTotal": 0,
+    "laborTotal": 3498.41,
+    "servicesTotal": 6197.19,
+    "grandTotal": 19691.07
+  },
+  "summary": {
+    "sprinklers": 0,
+    "pipes": 7,
+    "pumps": 0,
+    "gas_systems": 0,
+    "hose_cabinets": 8
+  },
+  "currency": "SAR"
+}

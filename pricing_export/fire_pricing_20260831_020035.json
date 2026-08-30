@@ -1,0 +1,222 @@
+{
+  "name": "Testing",
+  "quoteNo": "CAD-20260831",
+  "date": "2026-08-31",
+  "source": "Fire-CAD-Analyzer",
+  "materials": [
+    {
+      "name": "رشاشات pendant",
+      "qty": 1086,
+      "unit": "رشاش",
+      "unitCost": 45
+    },
+    {
+      "name": "مواسير فولاذ 50 مم",
+      "qty": 4992.61,
+      "unit": "متر",
+      "unitCost": 70
+    },
+    {
+      "name": "نظام FM-200",
+      "qty": 1,
+      "unit": "نظام",
+      "unitCost": 8500
+    },
+    {
+      "name": "نظام FM-200",
+      "qty": 1,
+      "unit": "نظام",
+      "unitCost": 8500
+    },
+    {
+      "name": "نظام FM-200",
+      "qty": 1,
+      "unit": "نظام",
+      "unitCost": 8500
+    },
+    {
+      "name": "نظام FM-200",
+      "qty": 1,
+      "unit": "نظام",
+      "unitCost": 8500
+    },
+    {
+      "name": "نظام FM-200",
+      "qty": 1,
+      "unit": "نظام",
+      "unitCost": 8500
+    },
+    {
+      "name": "نظام FM-200",
+      "qty": 1,
+      "unit": "نظام",
+      "unitCost": 8500
+    },
+    {
+      "name": "نظام FM-200",
+      "qty": 1,
+      "unit": "نظام",
+      "unitCost": 8500
+    },
+    {
+      "name": "نظام FM-200",
+      "qty": 1,
+      "unit": "نظام",
+      "unitCost": 8500
+    },
+    {
+      "name": "نظام FM-200",
+      "qty": 1,
+      "unit": "نظام",
+      "unitCost": 8500
+    },
+    {
+      "name": "نظام FM-200",
+      "qty": 1,
+      "unit": "نظام",
+      "unitCost": 8500
+    },
+    {
+      "name": "نظام FM-200",
+      "qty": 1,
+      "unit": "نظام",
+      "unitCost": 8500
+    },
+    {
+      "name": "نظام FM-200",
+      "qty": 1,
+      "unit": "نظام",
+      "unitCost": 8500
+    },
+    {
+      "name": "نظام FM-200",
+      "qty": 1,
+      "unit": "نظام",
+      "unitCost": 8500
+    },
+    {
+      "name": "نظام FM-200",
+      "qty": 1,
+      "unit": "نظام",
+      "unitCost": 8500
+    },
+    {
+      "name": "نظام FM-200",
+      "qty": 1,
+      "unit": "نظام",
+      "unitCost": 8500
+    },
+    {
+      "name": "نظام FM-200",
+      "qty": 1,
+      "unit": "نظام",
+      "unitCost": 8500
+    },
+    {
+      "name": "نظام FM-200",
+      "qty": 1,
+      "unit": "نظام",
+      "unitCost": 8500
+    },
+    {
+      "name": "نظام FM-200",
+      "qty": 1,
+      "unit": "نظام",
+      "unitCost": 8500
+    },
+    {
+      "name": "نظام FM-200",
+      "qty": 1,
+      "unit": "نظام",
+      "unitCost": 8500
+    },
+    {
+      "name": "نظام FM-200",
+      "qty": 1,
+      "unit": "نظام",
+      "unitCost": 8500
+    },
+    {
+      "name": "خزانات خرطوم",
+      "qty": 8,
+      "unit": "خزانة",
+      "unitCost": 850
+    },
+    {
+      "name": "صمامات",
+      "qty": 3,
+      "unit": "صمام",
+      "unitCost": 350
+    }
+  ],
+  "equipment": [
+    {
+      "name": "مضخة electric",
+      "qty": 1,
+      "supplyCost": 45000,
+      "installCost": 0
+    },
+    {
+      "name": "مضخة diesel",
+      "qty": 1,
+      "supplyCost": 65000,
+      "installCost": 0
+    },
+    {
+      "name": "مضخة jockey",
+      "qty": 1,
+      "supplyCost": 12000,
+      "installCost": 0
+    }
+  ],
+  "labor": [
+    {
+      "name": "تكلفة التركيب (35%)",
+      "workers": 1,
+      "days": 1,
+      "dailyCost": 244371.05
+    }
+  ],
+  "services": [
+    {
+      "name": "التصميم والهندسة (10%)",
+      "value": 69820.3,
+      "type": "fixed",
+      "amount": 69820.3
+    },
+    {
+      "name": "مصاريف إدارية (15%)",
+      "value": 104730.45,
+      "type": "fixed",
+      "amount": 104730.45
+    },
+    {
+      "name": "هامش الربح (20%)",
+      "value": 223424.96,
+      "type": "fixed",
+      "amount": 223424.96
+    },
+    {
+      "name": "احتياطي (5%)",
+      "value": 34910.15,
+      "type": "fixed",
+      "amount": 34910.15
+    }
+  ],
+  "totals": {
+    "baseCost": 698203.0,
+    "materialsTotal": 576202.7,
+    "eqTotal": 122000,
+    "laborTotal": 244371.05,
+    "servicesTotal": 432885.86,
+    "grandTotal": 1375459.91
+  },
+  "summary": {
+    "sprinklers": 1086,
+    "pipes": 1357,
+    "pumps": 3,
+    "gas_systems": 20,
+    "hose_cabinets": 8
+  },
+  "currency": "SAR"
+}
