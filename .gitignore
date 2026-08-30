@@ -4,9 +4,6 @@ __pycache__/
 *$py.class
 venv/
 env/
-dwg_input/
-dwg_output/
-dwg_temp/
 
 # VS Code
 .vscode/
@@ -16,6 +13,11 @@ reports/*.json
 reports/*.pdf
 reports/*.xlsx
 src/reports/
+
+# DWG temp folders
+dwg_input/
+dwg_output/
+dwg_temp/
 
 # Test files
 tests/test_data/*.dxf
