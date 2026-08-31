@@ -151,13 +151,27 @@ class CADAnalyzerGUI:
         )
         self.analyze_btn.pack()
         
-        # شريط التقدم
+        # إطار شريط التقدم
+        progress_frame = tk.Frame(self.root, bg="#0f1626")
+        progress_frame.pack(fill="x", padx=10, pady=10)
+        
         self.progress = ttk.Progressbar(
-            self.root,
-            mode="indeterminate",
-            length=400,
+            progress_frame,
+            mode="determinate",
+            length=500,
+            maximum=100,
+            value=0,
         )
-        self.progress.pack(pady=10)
+        self.progress.pack(side="left", padx=5, fill="x", expand=True)
+        
+        self.progress_label = tk.Label(
+            progress_frame,
+            text="0%",
+            font=("Arial", 11, "bold"),
+            bg="#0f1626",
+            fg="#3498DB",
+        )
+        self.progress_label.pack(side="left", padx=5)
         
         # أزرار التصدير (تظهر بعد التحليل)
         export_frame = tk.Frame(self.root, bg="#0f1626")
@@ -252,19 +266,22 @@ class CADAnalyzerGUI:
         thread.start()
     
     def _run_analysis(self):
-        """تنفيذ التحليل"""
+        """تنفيذ التحليل مع شريط التقدم"""
         try:
-            # قراءة الملف
+            # 10% - قراءة الملف
+            self._update_progress(10, "قراءة الملف...")
             reader = CADReader()
             if not reader.read_file(self.file_path.get()):
                 self._show_error("فشل قراءة الملف")
                 return
             
-            # استخراج العناصر
+            # 30% - استخراج العناصر
+            self._update_progress(30, "استخراج العناصر...")
             extractor = EntityExtractor(reader.modelspace, reader.doc)
             self.entities = extractor.extract_all()
             
-            # تحديد التصنيف
+            # 50% - فحص المعايير
+            self._update_progress(50, "فحص المعايير...")
             hazard_map = {
                 "خفيف (Light Hazard)": "light_hazard",
                 "عادي 1 (OH1)": "ordinary_hazard_g1",
@@ -276,27 +293,39 @@ class CADAnalyzerGUI:
             selected_hazard = self.hazard_type.get()
             hazard_type = hazard_map.get(selected_hazard, None)
             
-            # فحص المعايير
             nfpa = NFPAValidator(self.entities, hazard_type)
             nfpa_results = nfpa.validate_all()
             
             saudi = SaudiCodeValidator(self.entities)
             saudi_results = saudi.validate_all()
             
-            # حساب التكاليف
+            # 70% - حساب التكاليف
+            self._update_progress(70, "حساب التكاليف...")
             cost_calc = CostCalculator(self.entities)
             self.cost_summary = cost_calc.calculate_all()
             
-            # عرض النتائج
+            # 90% - عرض النتائج
+            self._update_progress(90, "عرض النتائج...")
             self._display_results(nfpa_results, saudi_results, cost_calc)
             
-            # تفعيل أزرار التصدير
+            # 100% - اكتمل
+            self._update_progress(100, "اكتمل التحليل")
             self.root.after(0, self._enable_export_buttons)
             
         except Exception as e:
             self._show_error(f"خطأ: {e}")
         finally:
             self.root.after(0, self._finish_analysis)
+            
+    def _update_progress(self, value, status):
+        """تحديث شريط التقدم"""
+        self.root.after(0, self._set_progress, value, status)
+    
+    def _set_progress(self, value, status):
+        """تحديث شريط التقدم في الواجهة"""
+        self.progress['value'] = value
+        self.progress_label.config(text=f"{value}%")
+        self.status_var.set(status)    
     
     def _display_results(self, nfpa_results, saudi_results, cost_calc):
         """عرض النتائج"""
