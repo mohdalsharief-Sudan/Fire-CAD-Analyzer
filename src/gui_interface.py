@@ -19,7 +19,7 @@ from saudi_validator import SaudiCodeValidator
 from cost_calculator import CostCalculator
 from excel_exporter import ExcelExporter
 from pricing_exporter import PricingExporter
-
+from pipe_sizing import PipeSizing
 
 class CADAnalyzerGUI:
     """واجهة رسومية لمحلل CAD"""
@@ -304,6 +304,21 @@ class CADAnalyzerGUI:
             cost_calc = CostCalculator(self.entities)
             self.cost_summary = cost_calc.calculate_all()
             
+            # 80% - حساب المواسير والملحقات
+            self._update_progress(80, "حساب المواسير والملحقات...")
+            total_pipe_length = sum(
+                pipe.get('length', 0) 
+                for pipe in self.entities.get('pipes', [])
+            )
+            sprinkler_count = len(self.entities.get('sprinklers', []))
+            
+            pipe_calc = PipeSizing()
+            self.pipe_results = pipe_calc.calculate_complete_piping(
+                total_pipe_length_m=total_pipe_length,
+                sprinkler_count=sprinkler_count,
+                sprinkler_type='pendant',
+            )
+            
             # 90% - عرض النتائج
             self._update_progress(90, "عرض النتائج...")
             self._display_results(nfpa_results, saudi_results, cost_calc)
@@ -344,7 +359,13 @@ class CADAnalyzerGUI:
         lines.append(f"• تكلفة المواد: {self.cost_summary['total_material_cost']:,.2f} ريال")
         lines.append(f"• تكلفة التركيب: {self.cost_summary['total_labor_cost']:,.2f} ريال")
         lines.append(f"• الإجمالي: {self.cost_summary['total_cost']:,.2f} ريال")
-        
+        if self.pipe_results:
+            lines.append("")
+            lines.append("📐 المواسير والملحقات:")
+            lines.append(f"  • الخط الرئيسي: {self.pipe_results['diameters']['main']['diameter']} مم")
+            lines.append(f"  • الفاقد في الضغط: {self.pipe_results['pressure_loss_bar']} bar")
+            if self.pipe_results.get('sprinkler_fittings'):
+                lines.append(f"  • ملحقات الرشاشات: {self.pipe_results['sprinkler_fittings']['total_cost']:,.2f} ريال")
         self.root.after(0, self._update_text, "\n".join(lines))
     
     def _update_text(self, text):
