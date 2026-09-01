@@ -1,0 +1,28 @@
+{
+  "pipes_per_meter": {
+    "25": {"sch10": 25, "sch40": 35},
+    "32": {"sch10": 32, "sch40": 45},
+    "40": {"sch10": 40, "sch40": 55},
+    "50": {"sch10": 50, "sch40": 70},
+    "65": {"sch10": 65, "sch40": 90},
+    "80": {"sch10": 75, "sch40": 110},
+    "100": {"sch10": 95, "sch40": 140},
+    "150": {"sch10": 140, "sch40": 200},
+    "200": {"sch10": 190, "sch40": 280},
+    "250": {"sch10": 240, "sch40": 350},
+    "300": {"sch10": 300, "sch40": 450}
+  },
+  "fittings": {
+    "25": {"elbow": 15, "tee": 22, "reducer": 18, "union": 12},
+    "32": {"elbow": 20, "tee": 30, "reducer": 25, "union": 15},
+    "40": {"elbow": 25, "tee": 38, "reducer": 32, "union": 18},
+    "50": {"elbow": 35, "tee": 52, "reducer": 45, "union": 25},
+    "65": {"elbow": 55, "tee": 82, "reducer": 70, "union": 38},
+    "80": {"elbow": 75, "tee": 112, "reducer": 95, "union": 50},
+    "100": {"elbow": 110, "tee": 165, "reducer": 140, "union": 75},
+    "150": {"elbow": 220, "tee": 330, "reducer": 280, "union": 150},
+    "200": {"elbow": 380, "tee": 570, "reducer": 480, "union": 260},
+    "250": {"elbow": 600, "tee": 900, "reducer": 750, "union": 400},
+    "300": {"elbow": 900, "tee": 1350, "reducer": 1100, "union": 600}
+  }
+}
