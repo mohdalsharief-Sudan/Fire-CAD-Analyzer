@@ -100,7 +100,9 @@ class ReportGenerator:
         # حفظ في المجلد الرئيسي reports/
         reports_dir = os.path.join(os.path.dirname(__file__), '..', 'reports')
         os.makedirs(reports_dir, exist_ok=True)
-        output_path = os.path.join(reports_dir, f"fire_system_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf")
+        reports_dir = os.path.join(os.path.dirname(__file__), '..', 'reports')
+        os.makedirs(reports_dir, exist_ok=True)
+        output_path = os.path.join(reports_dir, f"fire_system_analysis_{...}.pdf")
         
         doc = SimpleDocTemplate(
             output_path,

@@ -40,10 +40,11 @@ class ExcelExporter:
         )
     
     def export(self, output_path: str = None) -> str:
-        """تصدير إلى ملف Excel"""
         if not output_path:
+            reports_dir = os.path.join(os.path.dirname(__file__), '..', 'reports')
+            os.makedirs(reports_dir, exist_ok=True)
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            output_path = f"reports/cost_estimate_{timestamp}.xlsx"
+            output_path = os.path.join(reports_dir, f"cost_estimate_{timestamp}.xlsx")
         
         # 1. العنوان
         self.ws.merge_cells('A1:E1')

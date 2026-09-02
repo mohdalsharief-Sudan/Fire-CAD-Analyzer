@@ -1,7 +1,7 @@
 {
   "name": "Testing",
-  "quoteNo": "CAD-20260901",
-  "date": "2026-09-01",
+  "quoteNo": "CAD-20260902",
+  "date": "2026-09-02",
   "source": "Fire-CAD-Analyzer",
   "materials": [
     {
@@ -138,7 +138,7 @@
     },
     {
       "name": "خزانات خرطوم",
-      "qty": 8,
+      "qty": 3,
       "unit": "خزانة",
       "unitCost": 850
     },
@@ -204,19 +204,19 @@
     }
   ],
   "totals": {
-    "baseCost": 698203.0,
-    "materialsTotal": 576202.7,
+    "baseCost": 1761031.0,
+    "materialsTotal": 571952.7,
     "eqTotal": 122000,
     "laborTotal": 244371.05,
     "servicesTotal": 432885.86,
-    "grandTotal": 1375459.91
+    "grandTotal": 3341691.71
   },
   "summary": {
     "sprinklers": 1086,
     "pipes": 1357,
     "pumps": 3,
     "gas_systems": 20,
-    "hose_cabinets": 8
+    "hose_cabinets": 3
   },
   "currency": "SAR"
 }

@@ -133,7 +133,33 @@ class CADAnalyzerGUI:
         )
         hazard_combo.current(2)  # OH2 افتراضياً
         hazard_combo.pack(side="left", padx=5)
+                # إطار عناصر التدفق
+        flow_frame = tk.Frame(self.root, bg="#0f1626")
+        flow_frame.pack(fill="x", padx=10, pady=5)
         
+        flow_label = tk.Label(
+            flow_frame,
+            text="عناصر التدفق:",
+            font=("Arial", 11, "bold"),
+            bg="#0f1626",
+            fg="#3498DB",
+        )
+        flow_label.pack(side="left", padx=5)
+        
+        landing_label = tk.Label(flow_frame, text="Landing Valves:", font=("Arial", 10), bg="#0f1626", fg="white")
+        landing_label.pack(side="left", padx=5)
+        self.landing_valves = tk.Spinbox(flow_frame, from_=0, to=100, width=5, font=("Arial", 10))
+        self.landing_valves.pack(side="left", padx=2)
+        
+        fhc_label = tk.Label(flow_frame, text="صناديق حريق:", font=("Arial", 10), bg="#0f1626", fg="white")
+        fhc_label.pack(side="left", padx=5)
+        self.hose_cabinets = tk.Spinbox(flow_frame, from_=0, to=100, width=5, font=("Arial", 10))
+        self.hose_cabinets.pack(side="left", padx=2)
+        
+        hydrant_label = tk.Label(flow_frame, text="هيدرانت:", font=("Arial", 10), bg="#0f1626", fg="white")
+        hydrant_label.pack(side="left", padx=5)
+        self.hydrants = tk.Spinbox(flow_frame, from_=0, to=10, width=5, font=("Arial", 10))
+        self.hydrants.pack(side="left", padx=2)
         # زر التحليل
         analyze_frame = tk.Frame(self.root, bg="#0f1626")
         analyze_frame.pack(fill="x", padx=10, pady=10)
@@ -367,6 +393,17 @@ class CADAnalyzerGUI:
         lines.append(f"• المواسير: {len(self.entities.get('pipes', []))}")
         lines.append(f"• المضخات: {len(self.entities.get('pumps', []))}")
         lines.append(f"• أنظمة الغاز: {len(self.entities.get('gas_systems', []))}")
+        
+        # استخدام قيم الواجهة للأعداد
+        fhc_display = int(self.hose_cabinets.get() or 0)
+        landing_display = int(self.landing_valves.get() or 0)
+        hydrant_display = int(self.hydrants.get() or 0)
+        
+        # ← أضف هذه الأسطر الثلاثة هنا
+        lines.append(f"• صناديق الحريق: {fhc_display}")
+        lines.append(f"• Landing Valves: {landing_display}")
+        lines.append(f"• هيدرانت: {hydrant_display}")
+        
         lines.append(f"• مخالفات NFPA: {len(nfpa_results.get('violations', []))}")
         lines.append(f"• مخالفات سعودي: {len(saudi_results.get('violations', []))}")
         lines.append("")
@@ -389,6 +426,42 @@ class CADAnalyzerGUI:
             lines.append(f"  • إجمالي الملحقات: {fittings_total + sprinkler_fittings_total:,.2f} ريال")
         self.root.after(0, self._update_text, "\n".join(lines))
         
+                # حساب المضخة
+        GPM_TO_LPM = 3.78541
+        
+        landing_count = int(self.landing_valves.get() or 0)
+        fhc_count = int(self.hose_cabinets.get() or 0)
+        hydrant_count = int(self.hydrants.get() or 0)
+        
+        # التدفق التصميمي
+        sprinkler_flow_gpm = 26 * 12
+        
+        # صناديق الحريق (حد أقصى 2)
+        fhc_flow_gpm = min(fhc_count, 2) * 50
+        
+        # Landing Valves أو Hydrant (ليس كلاهما)
+        if landing_count > 0:
+            landing_flow_gpm = min(landing_count, 2) * 250
+            hydrant_flow_gpm = 0
+        else:
+            landing_flow_gpm = 0
+            hydrant_flow_gpm = min(hydrant_count, 1) * 500
+        
+        total_flow_gpm = sprinkler_flow_gpm + fhc_flow_gpm + landing_flow_gpm + hydrant_flow_gpm
+        total_flow_lpm = total_flow_gpm * GPM_TO_LPM
+        
+        # الضغط الكلي
+        total_pressure = self.pipe_results['pressure_loss_bar'] + 1.4
+        
+        # قدرة المضخة
+        pump_power_kw = (total_flow_lpm * total_pressure) / (600 * 0.75)
+        pump_power_hp = pump_power_kw * 1.341
+        
+        lines.append("")
+        lines.append("🔧 المضخة:")
+        lines.append(f"  • التدفق: {total_flow_gpm:.2f} GPM")
+        lines.append(f"  • الضغط: {total_pressure:.2f} bar ({total_pressure * 14.5038:.2f} PSI)")
+        lines.append(f"  • القدرة: {pump_power_kw:.2f} kW ({pump_power_hp:.2f} HP)")
          
     def _update_text(self, text):
         """تحديث النص في الواجهة"""
@@ -411,10 +484,27 @@ class CADAnalyzerGUI:
         self.pricing_btn.config(state="normal")
     
     def _export_excel(self):
-        """تصدير Excel"""
+        """تصدير Excel بقيم الواجهة"""
         if not self.cost_summary:
             messagebox.showwarning("تنبيه", "لا توجد بيانات للتصدير - قم بالتحليل أولاً")
             return
+        
+        # تحديث أعداد العناصر من الواجهة
+        cost_summary_copy = self.cost_summary.copy()
+        
+        # تعديل عدد صناديق الحريق
+        fhc_count = int(self.hose_cabinets.get() or 0)
+        landing_count = int(self.landing_valves.get() or 0)
+        hydrant_count = int(self.hydrants.get() or 0)
+        
+        for item in cost_summary_copy.get('items', []):
+            if 'خزانات خرطوم' in item.get('item', ''):
+                item['quantity'] = fhc_count
+                item['subtotal'] = fhc_count * item.get('unit_price', 0)
+        
+        # إعادة حساب الإجمالي
+        total_material = sum(item.get('subtotal', 0) for item in cost_summary_copy.get('items', []))
+        cost_summary_copy['total_material_cost'] = total_material
         
         from datetime import datetime
         
@@ -425,15 +515,23 @@ class CADAnalyzerGUI:
         filename = f"cost_estimate_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
         output_path = os.path.join(output_dir, filename)
         
-        exporter = ExcelExporter(self.cost_summary, os.path.basename(self.file_path.get()))
+        exporter = ExcelExporter(cost_summary_copy, os.path.basename(self.file_path.get()))
         path = exporter.export(output_path)
         messagebox.showinfo("تم", f"تم الحفظ:\n{path}")
     
     def _export_pricing(self):
-        """تصدير إلى Fire-Pricing"""
+        """تصدير إلى Fire-Pricing بقيم الواجهة"""
         if not self.cost_summary or not self.entities:
             messagebox.showwarning("تنبيه", "لا توجد بيانات للتصدير - قم بالتحليل أولاً")
             return
+        
+        # تحديث الأعداد من الواجهة
+        entities_copy = self.entities.copy()
+        entities_copy['hose_cabinets'] = []  # نعيد إنشاؤها بالعدد الصحيح
+        
+        fhc_count = int(self.hose_cabinets.get() or 0)
+        for i in range(fhc_count):
+            entities_copy['hose_cabinets'].append({'type': 'hose_cabinet'})
         
         project_root = os.path.dirname(os.path.dirname(__file__))
         output_dir = os.path.join(project_root, 'pricing_export')
@@ -442,11 +540,11 @@ class CADAnalyzerGUI:
         exporter = PricingExporter()
         path = exporter.export_for_fire_pricing(
             self.cost_summary,
-            self.entities,
+            entities_copy,
             os.path.basename(self.file_path.get()),
             output_dir=output_dir
         )
-        messagebox.showinfo("تم", f"تم التصدير:\n{path}\n\nيمكنك استيراده في Fire-Pricing")
+        messagebox.showinfo("تم", f"تم التصدير:\n{path}")
     
     def run(self):
         """تشغيل الواجهة"""
