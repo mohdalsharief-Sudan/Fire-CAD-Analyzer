@@ -232,3 +232,145 @@ class ReportGenerator:
                 len(self.entities.get('pumps', [])) > 0
             )
         }
+        
+    def generate_comprehensive_pdf(self, 
+                                    entities_summary: Dict,
+                                    cost_summary: Dict,
+                                    pipe_results: Dict,
+                                    pump_results: Dict,
+                                    output_path: str = None) -> str:
+        """
+        توليد تقرير PDF شامل
+        
+        Args:
+            entities_summary: ملخص العناصر
+            cost_summary: التكاليف
+            pipe_results: نتائج المواسير
+            pump_results: نتائج المضخة
+            
+        Returns:
+            str: مسار الملف
+        """
+        if not output_path:
+            reports_dir = os.path.join(os.path.dirname(__file__), '..', 'reports')
+            os.makedirs(reports_dir, exist_ok=True)
+            output_path = os.path.join(reports_dir, f"comprehensive_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf")
+        
+        doc = SimpleDocTemplate(
+            output_path,
+            pagesize=A4,
+            rightMargin=2*cm,
+            leftMargin=2*cm,
+            topMargin=2*cm,
+            bottomMargin=2*cm
+        )
+                # الأنماط
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'CompTitle',
+            parent=styles['Heading1'],
+            fontName=ARABIC_FONT,
+            fontSize=22,
+            textColor=colors.HexColor('#1B4F72'),
+            alignment=TA_CENTER,
+            spaceAfter=30
+        )
+        heading_style = ParagraphStyle(
+            'CompHeading',
+            parent=styles['Heading2'],
+            fontName=ARABIC_FONT,
+            fontSize=16,
+            textColor=colors.HexColor('#2874A6'),
+            spaceBefore=20,
+            spaceAfter=10
+        )
+        normal_style = ParagraphStyle(
+            'CompNormal',
+            parent=styles['Normal'],
+            fontName=ARABIC_FONT,
+            fontSize=10,
+            leading=14
+        )
+        story = []
+        
+        # العنوان
+        story.append(Paragraph(ar("تقرير شامل - نظام مكافحة الحريق"), title_style))
+        story.append(Spacer(1, 20))
+                # جدول العناصر
+        story.append(Paragraph(ar("تفاصيل العناصر المستخرجة"), heading_style))
+        
+        items_data = [
+            [ar('العنصر'), ar('العدد')],
+            [ar('الرشاشات'), str(entities_summary.get('sprinklers', 0))],
+            [ar('المواسير'), str(entities_summary.get('pipes', 0))],
+            [ar('المضخات'), str(entities_summary.get('pumps', 0))],
+            [ar('أنظمة الغاز'), str(entities_summary.get('gas_systems', 0))],
+            [ar('صناديق الحريق'), str(entities_summary.get('hose_cabinets', 0))],
+            [ar('Landing Valves'), str(entities_summary.get('landing_valves', 0))],
+            [ar('الهيدرانت'), str(entities_summary.get('hydrants', 0))],
+        ]
+        
+        items_table = Table(items_data, colWidths=[8*cm, 8*cm])
+        items_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1B4F72')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, -1), ARABIC_FONT),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#EBF5FB')),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#2874A6')),
+        ]))
+        
+        story.append(items_table)
+        story.append(Spacer(1, 20))
+        
+        # 1. نتائج التحليل
+        story.append(Paragraph(ar("1. نتائج التحليل"), heading_style))
+        story.append(Paragraph(ar(f"• الرشاشات: {entities_summary.get('sprinklers', 0)}"), normal_style))
+        story.append(Paragraph(ar(f"• المواسير: {entities_summary.get('pipes', 0)}"), normal_style))
+        story.append(Paragraph(ar(f"• المضخات: {entities_summary.get('pumps', 0)}"), normal_style))
+        story.append(Spacer(1, 10))
+        
+        # 2. حساب المضخة
+        if pump_results:
+            story.append(Paragraph(ar("2. حساب المضخة"), heading_style))
+            story.append(Paragraph(ar(f"• التدفق: {pump_results.get('total_flow_gpm', 0)} GPM"), normal_style))
+            story.append(Paragraph(ar(f"• الضغط: {pump_results.get('total_pressure_bar', 0)} bar"), normal_style))
+            story.append(Paragraph(ar(f"• القدرة: {pump_results.get('pump_power_kw', 0)} kW"), normal_style))
+            story.append(Spacer(1, 10))
+        
+        # 3. المواسير والملحقات
+        if pipe_results:
+            story.append(Paragraph(ar("3. المواسير والملحقات"), heading_style))
+            for section, data in pipe_results['diameters'].items():
+                story.append(Paragraph(ar(f"• {section}: {data['diameter']} مم"), normal_style))
+            story.append(Paragraph(ar(f"• الفاقد في الضغط: {pipe_results['pressure_loss_bar']} bar"), normal_style))
+            story.append(Spacer(1, 10))
+        
+        # جدول التكاليف
+        if cost_summary:
+            story.append(Paragraph(ar("تفاصيل التكاليف"), heading_style))
+            
+            cost_data = [[ar('البند'), ar('التكلفة (ريال)')]]
+            for item in cost_summary.get('items', [])[:20]:  # أول 20 بند
+                cost_data.append([
+                    ar(item.get('item', '')),
+                    f"{item.get('subtotal', 0):,.2f}"
+                ])
+            
+            cost_table = Table(cost_data, colWidths=[10*cm, 6*cm])
+            cost_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1B4F72')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, -1), ARABIC_FONT),
+                ('FONTSIZE', (0, 0), (-1, 0), 11),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#EBF5FB')),
+                ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#2874A6')),
+            ]))
+            
+            story.append(cost_table)
+            doc.build(story)
+        return output_path    

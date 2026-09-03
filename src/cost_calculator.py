@@ -135,6 +135,42 @@ class CostCalculator:
         
         self.total_material_cost += total
     
+    def _calculate_landing_valves(self, count: int = 0):
+        """حساب تكلفة Landing Valves"""
+        if count <= 0:
+            return
+        
+        from cost_data import LANDING_VALVE_COSTS
+        unit_price = LANDING_VALVE_COSTS.get('standard', 1200)
+        subtotal = unit_price * count
+        
+        self.cost_items.append({
+            'item': 'Landing Valves (2.5")',
+            'quantity': count,
+            'unit': 'صمام',
+            'unit_price': unit_price,
+            'subtotal': subtotal
+        })
+        self.total_material_cost += subtotal
+    
+    def _calculate_hydrants(self, count: int = 0):
+        """حساب تكلفة الهيدرانت"""
+        if count <= 0:
+            return
+        
+        from cost_data import HYDRANT_COSTS
+        unit_price = HYDRANT_COSTS.get('standard', 3500)
+        subtotal = unit_price * count
+        
+        self.cost_items.append({
+            'item': 'هيدرانت خارجي',
+            'quantity': count,
+            'unit': 'هيدرانت',
+            'unit_price': unit_price,
+            'subtotal': subtotal
+        })
+        self.total_material_cost += subtotal
+    
     def _calculate_gas_systems(self):
         """حساب تكلفة أنظمة الغاز"""
         gas_systems = self.entities.get('gas_systems', [])

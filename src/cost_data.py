@@ -107,6 +107,20 @@ VALVE_COSTS = {
     'alarm_check': 2500,
 }
 
+# ============ Landing Valves ============
+LANDING_VALVE_COSTS = {
+    'standard': 1200,
+    'angle': 1500,
+    'brass': 2000,
+}
+
+# ============ الهيدرانت ============
+HYDRANT_COSTS = {
+    'standard': 3500,
+    'double': 5500,
+    'with_pillar': 8000,
+}
+
 # ============ تكاليف إضافية ============
 ADDITIONAL_COSTS = {
     'labor_ratio': 0.35,        # نسبة التركيب من تكلفة المواد (35%)

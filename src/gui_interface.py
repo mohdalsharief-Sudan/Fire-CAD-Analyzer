@@ -41,6 +41,8 @@ class CADAnalyzerGUI:
         
         self._build_ui()
     
+    
+    
     def _build_ui(self):
         """بناء الواجهة"""
         # العنوان
@@ -217,6 +219,19 @@ class CADAnalyzerGUI:
         )
         self.excel_btn.pack(side="left", padx=5)
         
+        self.pdf_btn = tk.Button(
+            export_frame,
+            text="📄 PDF",
+            command=self._export_pdf,
+            bg="#8E44AD",
+            fg="white",
+            font=("Arial", 10, "bold"),
+            padx=15,
+            pady=5,
+            cursor="hand2",
+        )
+        self.pdf_btn.pack(side="left", padx=5)
+        
         self.pricing_btn = tk.Button(
             export_frame,
             text="💰 Fire-Pricing",
@@ -243,8 +258,7 @@ class CADAnalyzerGUI:
             fg="#e0e0e0",
             insertbackground="white",
         )
-        self.result_text.pack(fill="both", expand=True)
-        
+               
         # شريط الحالة
         status_frame = tk.Frame(self.root, bg="#1B4F72")
         status_frame.pack(fill="x", side="bottom")
@@ -259,9 +273,45 @@ class CADAnalyzerGUI:
             pady=5,
         )
         status_label.pack(side="left")
-        
-        
     
+    def _export_pdf(self):
+                """تصدير PDF شامل"""
+                if not self.cost_summary:
+                    messagebox.showwarning("تنبيه", "لا توجد بيانات")
+                    return
+                
+                from report_generator import ReportGenerator
+                
+                # ملخص العناصر
+                entities_summary = {
+                    'sprinklers': len(self.entities.get('sprinklers', [])),
+                    'pipes': len(self.entities.get('pipes', [])),
+                    'pumps': len(self.entities.get('pumps', [])),
+                    'gas_systems': len(self.entities.get('gas_systems', [])),
+                    'hose_cabinets': int(self.hose_cabinets.get() or 0),
+                    'landing_valves': int(self.landing_valves.get() or 0),
+                    'hydrants': int(self.hydrants.get() or 0),
+                }
+                
+                # نتائج المضخة
+                pump_results = getattr(self, 'pump_results', None)
+                
+                report_gen = ReportGenerator(
+                    file_path=self.file_path.get(),
+                    entities=self.entities,
+                    validation_results={},
+                    document_info={}
+                )
+                
+                path = report_gen.generate_comprehensive_pdf(
+                    entities_summary=entities_summary,
+                    cost_summary=self.cost_summary,
+                    pipe_results=getattr(self, 'pipe_results', None),
+                    pump_results=pump_results,
+                )
+                
+                messagebox.showinfo("تم", f"تم الحفظ:\n{path}")        
+        
     def _browse_file(self):
         """اختيار ملف"""
         file_path = filedialog.askopenfilename(
@@ -328,6 +378,18 @@ class CADAnalyzerGUI:
             # 70% - حساب التكاليف
             self._update_progress(70, "حساب التكاليف...")
             cost_calc = CostCalculator(self.entities)
+            
+            # إضافة Landing Valves و Hydrant من الواجهة أولاً
+            landing_count = int(self.landing_valves.get() or 0)
+            hydrant_count = int(self.hydrants.get() or 0)
+            
+            if landing_count > 0:
+                cost_calc._calculate_landing_valves(landing_count)
+            
+            if hydrant_count > 0:
+                cost_calc._calculate_hydrants(hydrant_count)
+            
+            # حساب الكل مرة واحدة فقط
             self.cost_summary = cost_calc.calculate_all()
             
              # 80% - حساب المواسير والملحقات
@@ -482,7 +544,7 @@ class CADAnalyzerGUI:
         """تفعيل أزرار التصدير"""
         self.excel_btn.config(state="normal")
         self.pricing_btn.config(state="normal")
-    
+        self.pdf_btn.config(state="normal")
     def _export_excel(self):
         """تصدير Excel بقيم الواجهة"""
         if not self.cost_summary:
