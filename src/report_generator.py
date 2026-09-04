@@ -121,7 +121,7 @@ class ReportGenerator:
             fontName=ARABIC_FONT,
             fontSize=22,
             textColor=colors.HexColor('#1B4F72'),
-            alignment=TA_CENTER,
+            alignment=TA_RIGHT,
             spaceAfter=30
         )
         heading_style = ParagraphStyle(
@@ -282,6 +282,7 @@ class ReportGenerator:
             fontName=ARABIC_FONT,
             fontSize=16,
             textColor=colors.HexColor('#2874A6'),
+            alignment=TA_RIGHT,
             spaceBefore=20,
             spaceAfter=10
         )
@@ -290,7 +291,8 @@ class ReportGenerator:
             parent=styles['Normal'],
             fontName=ARABIC_FONT,
             fontSize=10,
-            leading=14
+            leading=14,
+            alignment=TA_RIGHT
         )
         story = []
         
@@ -341,7 +343,7 @@ class ReportGenerator:
             story.append(Paragraph(ar(f"• القدرة: {pump_results.get('pump_power_kw', 0)} kW"), normal_style))
             story.append(Spacer(1, 10))
         
-        # 2.5 الخزان
+        # 3. الخزان
         if tank_results:
             story.append(Paragraph(ar("حساب الخزان"), heading_style))
             story.append(Paragraph(ar(f"• الحجم: {tank_results.get('volume_m3', 0)} م³"), normal_style))
@@ -349,7 +351,7 @@ class ReportGenerator:
             story.append(Paragraph(ar(f"• المدة: {tank_results.get('duration_min', 30)} دقيقة"), normal_style))
             story.append(Spacer(1, 10))
             
-        # 3. المواسير والملحقات
+        # 4. المواسير والملحقات
         if pipe_results:
             story.append(Paragraph(ar("3. المواسير والملحقات"), heading_style))
             for section, data in pipe_results['diameters'].items():
@@ -359,8 +361,7 @@ class ReportGenerator:
         
         # جدول التكاليف
         if cost_summary:
-            story.append(Paragraph(ar("تفاصيل التكاليف"), heading_style))
-            
+            story.append(Paragraph(ar("5. التكاليف"), heading_style))                   
             cost_data = [[ar('البند'), ar('التكلفة (ريال)')]]
             for item in cost_summary.get('items', [])[:20]:  # أول 20 بند
                 cost_data.append([
