@@ -199,21 +199,29 @@ class HydraulicCalculator:
     # ========== حجم الخزان ==========
     
     def calculate_tank_volume(self,
-                               flow_lpm: float,
-                               duration_min: int = 30) -> float:
+            flow_lpm: float,
+            duration_min: int = 30) -> dict:
         """
-        حجم خزان المياه
-        V = Q × t / 1000
+        حساب حجم خزان المياه
         
         Args:
             flow_lpm: التدفق (لتر/دقيقة)
             duration_min: مدة التشغيل (دقيقة)
             
         Returns:
-            الحجم (م³)
+            dict: حجم الخزان
         """
         volume_m3 = (flow_lpm * duration_min) / 1000
-        return round(volume_m3, 2)
+        
+        # إضافة 10% احتياطي
+        volume_with_reserve = volume_m3 * 1.1
+        
+        return {
+            'volume_m3': round(volume_m3, 2),
+            'volume_with_reserve_m3': round(volume_with_reserve, 2),
+            'duration_min': duration_min,
+            'flow_lpm': flow_lpm,
+        }
     
     # ========== اختيار قطر الماسورة ==========
     

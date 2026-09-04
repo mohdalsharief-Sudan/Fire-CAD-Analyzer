@@ -238,6 +238,7 @@ class ReportGenerator:
                                     cost_summary: Dict,
                                     pipe_results: Dict,
                                     pump_results: Dict,
+                                    tank_results: Dict = None,
                                     output_path: str = None) -> str:
         """
         توليد تقرير PDF شامل
@@ -340,6 +341,14 @@ class ReportGenerator:
             story.append(Paragraph(ar(f"• القدرة: {pump_results.get('pump_power_kw', 0)} kW"), normal_style))
             story.append(Spacer(1, 10))
         
+        # 2.5 الخزان
+        if tank_results:
+            story.append(Paragraph(ar("حساب الخزان"), heading_style))
+            story.append(Paragraph(ar(f"• الحجم: {tank_results.get('volume_m3', 0)} م³"), normal_style))
+            story.append(Paragraph(ar(f"• مع الاحتياطي: {tank_results.get('volume_with_reserve_m3', 0)} م³"), normal_style))
+            story.append(Paragraph(ar(f"• المدة: {tank_results.get('duration_min', 30)} دقيقة"), normal_style))
+            story.append(Spacer(1, 10))
+            
         # 3. المواسير والملحقات
         if pipe_results:
             story.append(Paragraph(ar("3. المواسير والملحقات"), heading_style))

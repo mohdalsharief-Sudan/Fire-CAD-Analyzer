@@ -162,6 +162,14 @@ class CADAnalyzerGUI:
         hydrant_label.pack(side="left", padx=5)
         self.hydrants = tk.Spinbox(flow_frame, from_=0, to=10, width=5, font=("Arial", 10))
         self.hydrants.pack(side="left", padx=2)
+        duration_label = tk.Label(flow_frame, text="المدة (دقيقة):", font=("Arial", 10), bg="#0f1626", fg="white")
+        duration_label.pack(side="left", padx=5)
+        self.duration_min = tk.Spinbox(flow_frame, from_=10, to=120, width=5, font=("Arial", 10))
+        self.duration_min.delete(0, "end")
+        self.duration_min.insert(0, "30")
+        self.duration_min.pack(side="left", padx=2)
+        
+        
         # زر التحليل
         analyze_frame = tk.Frame(self.root, bg="#0f1626")
         analyze_frame.pack(fill="x", padx=10, pady=10)
@@ -295,7 +303,8 @@ class CADAnalyzerGUI:
                 
                 # نتائج المضخة
                 pump_results = getattr(self, 'pump_results', None)
-                
+                # بيانات الخزان
+                tank_results = getattr(self, 'tank_results', None)
                 report_gen = ReportGenerator(
                     file_path=self.file_path.get(),
                     entities=self.entities,
@@ -308,10 +317,13 @@ class CADAnalyzerGUI:
                     cost_summary=self.cost_summary,
                     pipe_results=getattr(self, 'pipe_results', None),
                     pump_results=pump_results,
+                    tank_results=tank_results,
                 )
                 
                 messagebox.showinfo("تم", f"تم الحفظ:\n{path}")        
         
+                
+                
     def _browse_file(self):
         """اختيار ملف"""
         file_path = filedialog.askopenfilename(
@@ -421,6 +433,49 @@ class CADAnalyzerGUI:
                 self.cost_summary['total_material_cost'] += extra_cost
                 self.cost_summary['total_cost'] += extra_cost * 1.85  # مع التركيب والهندسة
 
+                        # حساب التدفق والمضخة والخزان
+            GPM_TO_LPM = 3.78541
+            
+            landing_count_val = int(self.landing_valves.get() or 0)
+            fhc_count_val = int(self.hose_cabinets.get() or 0)
+            hydrant_count_val = int(self.hydrants.get() or 0)
+            
+            sprinkler_flow_gpm = 26 * 12
+            fhc_flow_gpm = min(fhc_count_val, 2) * 50
+            
+            if landing_count_val > 0:
+                landing_flow_gpm = min(landing_count_val, 2) * 250
+                hydrant_flow_gpm = 0
+            else:
+                landing_flow_gpm = 0
+                hydrant_flow_gpm = min(hydrant_count_val, 1) * 500
+            
+            total_flow_gpm = sprinkler_flow_gpm + fhc_flow_gpm + landing_flow_gpm + hydrant_flow_gpm
+            total_flow_lpm = total_flow_gpm * GPM_TO_LPM
+            
+            total_pressure = self.pipe_results['pressure_loss_bar'] + 1.4
+            pump_power_kw = (total_flow_lpm * total_pressure) / (600 * 0.75)
+            pump_power_hp = pump_power_kw * 1.341
+            
+            # حفظ نتائج المضخة
+            self.pump_results = {
+                'total_flow_gpm': round(total_flow_gpm, 2),
+                'total_flow_lpm': round(total_flow_lpm, 2),
+                'total_pressure_bar': round(total_pressure, 2),
+                'total_pressure_psi': round(total_pressure * 14.5038, 2),
+                'pump_power_kw': round(pump_power_kw, 2),
+                'pump_power_hp': round(pump_power_hp, 2),
+            }
+            
+            # حفظ نتائج الخزان
+            duration = int(self.duration_min.get() or 30)
+            tank_volume = (total_flow_lpm * duration) / 1000
+            self.tank_results = {
+                'volume_m3': round(tank_volume, 2),
+                'volume_with_reserve_m3': round(tank_volume * 1.1, 2),
+                'duration_min': duration,
+                'flow_lpm': round(total_flow_lpm, 2),
+            }
             
             # 90% - عرض النتائج
             self._update_progress(90, "عرض النتائج...")
@@ -488,7 +543,7 @@ class CADAnalyzerGUI:
             lines.append(f"  • إجمالي الملحقات: {fittings_total + sprinkler_fittings_total:,.2f} ريال")
         self.root.after(0, self._update_text, "\n".join(lines))
         
-                # حساب المضخة
+        # حساب المضخة
         GPM_TO_LPM = 3.78541
         
         landing_count = int(self.landing_valves.get() or 0)
@@ -524,7 +579,24 @@ class CADAnalyzerGUI:
         lines.append(f"  • التدفق: {total_flow_gpm:.2f} GPM")
         lines.append(f"  • الضغط: {total_pressure:.2f} bar ({total_pressure * 14.5038:.2f} PSI)")
         lines.append(f"  • القدرة: {pump_power_kw:.2f} kW ({pump_power_hp:.2f} HP)")
-         
+        # حساب حجم الخزان
+        duration = int(self.duration_min.get() or 30)
+        tank_volume = (total_flow_lpm * duration) / 1000
+        tank_volume_reserve = tank_volume * 1.1
+        
+        lines.append("")
+        lines.append("💧 الخزان:")
+        lines.append(f"  • الحجم: {tank_volume:.2f} م³")
+        lines.append(f"  • مع الاحتياطي: {tank_volume_reserve:.2f} م³")
+        lines.append(f"  • المدة: {duration} دقيقة")
+        # حفظ نتائج الخزان
+        self.tank_results = {
+            'volume_m3': round(tank_volume, 2),
+            'volume_with_reserve_m3': round(tank_volume_reserve, 2),
+            'duration_min': duration,
+            'flow_lpm': round(total_flow_lpm, 2),
+        }
+        
     def _update_text(self, text):
         """تحديث النص في الواجهة"""
         self.result_text.insert(tk.END, text)
