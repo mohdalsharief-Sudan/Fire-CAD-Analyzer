@@ -1,0 +1,147 @@
+{
+  "manufacturers": {
+    "SFFECO": {
+      "pumps": [
+        {
+          "model": "SFF-500-7",
+          "type": "electric",
+          "flow_gpm": 500,
+          "pressure_bar": 7,
+          "power_kw": 45,
+          "efficiency": 0.75,
+          "price_sar": 35000
+        },
+        {
+          "model": "SFF-750-8",
+          "type": "electric",
+          "flow_gpm": 750,
+          "pressure_bar": 8,
+          "power_kw": 55,
+          "efficiency": 0.75,
+          "price_sar": 45000
+        },
+        {
+          "model": "SFF-1000-9",
+          "type": "electric",
+          "flow_gpm": 1000,
+          "pressure_bar": 9,
+          "power_kw": 75,
+          "efficiency": 0.75,
+          "price_sar": 55000
+        },
+        {
+          "model": "SFF-1250-9",
+          "type": "electric",
+          "flow_gpm": 1250,
+          "pressure_bar": 9,
+          "power_kw": 90,
+          "efficiency": 0.75,
+          "price_sar": 65000
+        },
+        {
+          "model": "SFF-1500-9",
+          "type": "electric",
+          "flow_gpm": 1500,
+          "pressure_bar": 9,
+          "power_kw": 110,
+          "efficiency": 0.75,
+          "price_sar": 85000
+        },
+        {
+          "model": "SFF-500-7-D",
+          "type": "diesel",
+          "flow_gpm": 500,
+          "pressure_bar": 7,
+          "power_kw": 50,
+          "efficiency": 0.70,
+          "price_sar": 50000
+        },
+        {
+          "model": "SFF-750-8-D",
+          "type": "diesel",
+          "flow_gpm": 750,
+          "pressure_bar": 8,
+          "power_kw": 65,
+          "efficiency": 0.70,
+          "price_sar": 65000
+        },
+        {
+          "model": "SFF-1000-9-D",
+          "type": "diesel",
+          "flow_gpm": 1000,
+          "pressure_bar": 9,
+          "power_kw": 85,
+          "efficiency": 0.70,
+          "price_sar": 80000
+        },
+        {
+          "model": "SFF-1250-9-D",
+          "type": "diesel",
+          "flow_gpm": 1250,
+          "pressure_bar": 9,
+          "power_kw": 100,
+          "efficiency": 0.70,
+          "price_sar": 95000
+        },
+        {
+          "model": "SFF-1500-9-D",
+          "type": "diesel",
+          "flow_gpm": 1500,
+          "pressure_bar": 9,
+          "power_kw": 120,
+          "efficiency": 0.70,
+          "price_sar": 120000
+        }
+      ]
+    },
+    "NAFFCO": {
+      "pumps": [
+        {
+          "model": "NF-500-7",
+          "type": "electric",
+          "flow_gpm": 500,
+          "pressure_bar": 7,
+          "power_kw": 45,
+          "efficiency": 0.75,
+          "price_sar": 38000
+        },
+        {
+          "model": "NF-750-8",
+          "type": "electric",
+          "flow_gpm": 750,
+          "pressure_bar": 8,
+          "power_kw": 55,
+          "efficiency": 0.75,
+          "price_sar": 48000
+        },
+        {
+          "model": "NF-1000-9",
+          "type": "electric",
+          "flow_gpm": 1000,
+          "pressure_bar": 9,
+          "power_kw": 75,
+          "efficiency": 0.75,
+          "price_sar": 58000
+        },
+        {
+          "model": "NF-1250-9",
+          "type": "electric",
+          "flow_gpm": 1250,
+          "pressure_bar": 9,
+          "power_kw": 90,
+          "efficiency": 0.75,
+          "price_sar": 68000
+        },
+        {
+          "model": "NF-1500-9",
+          "type": "electric",
+          "flow_gpm": 1500,
+          "pressure_bar": 9,
+          "power_kw": 110,
+          "efficiency": 0.75,
+          "price_sar": 88000
+        }
+      ]
+    }
+  }
+}

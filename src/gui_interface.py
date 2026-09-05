@@ -9,7 +9,7 @@ import os
 import threading
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk, scrolledtext
-
+from pump_selector import PumpSelector
 sys.path.insert(0, os.path.dirname(__file__))
 
 from cad_reader import CADReader
@@ -480,7 +480,13 @@ class CADAnalyzerGUI:
             # 90% - عرض النتائج
             self._update_progress(90, "عرض النتائج...")
             self._display_results(nfpa_results, saudi_results, cost_calc)
-            
+            # عرض التوصيات في الواجهة مباشرة
+            if hasattr(self, 'pump_recommendations') and self.pump_recommendations:
+                recommendations_text = "\n\n🔧 المضخات المقترحة:\n"
+                for i, pump in enumerate(self.pump_recommendations[:3], 1):
+                    recommendations_text += f"  {i}. {pump['manufacturer']} {pump['model']} - {pump['price_sar']:,.0f} ريال\n"
+                
+                self.root.after(0, self._append_text, recommendations_text)
             # 100% - اكتمل
             self._update_progress(100, "اكتمل التحليل")
             self.root.after(0, self._enable_export_buttons)
@@ -489,7 +495,11 @@ class CADAnalyzerGUI:
             self._show_error(f"خطأ: {e}")
         finally:
             self.root.after(0, self._finish_analysis)
-            
+    
+    def _append_text(self, text):
+        """إضافة نص في الواجهة"""
+        self.result_text.insert(tk.END, text)
+                
     def _update_progress(self, value, status):
         """تحديث شريط التقدم"""
         self.root.after(0, self._set_progress, value, status)
@@ -503,6 +513,7 @@ class CADAnalyzerGUI:
     def _display_results(self, nfpa_results, saudi_results, cost_calc):
         """عرض النتائج"""
         lines = []
+        
         lines.append("=" * 60)
         lines.append("📊 نتائج التحليل")
         lines.append("=" * 60)
@@ -541,7 +552,6 @@ class CADAnalyzerGUI:
             lines.append(f"  • ملحقات الخطوط: {fittings_total:,.2f} ريال")
             lines.append(f"  • ملحقات الرشاشات: {sprinkler_fittings_total:,.2f} ريال")
             lines.append(f"  • إجمالي الملحقات: {fittings_total + sprinkler_fittings_total:,.2f} ريال")
-        self.root.after(0, self._update_text, "\n".join(lines))
         
         # حساب المضخة
         GPM_TO_LPM = 3.78541
@@ -597,8 +607,39 @@ class CADAnalyzerGUI:
             'flow_lpm': round(total_flow_lpm, 2),
         }
         
+        
+        # توصيات المضخات
+        try:
+            pump_selector = PumpSelector()
+            matches = pump_selector.find_matching_pumps(
+                flow_gpm=total_flow_gpm,
+                pressure_bar=total_pressure
+            )
+            
+            if matches:
+                lines.append("")
+                lines.append("🔧 المضخات المقترحة:")
+                for i, pump in enumerate(matches[:3], 1):
+                    lines.append(f"  {i}. {pump['manufacturer']} {pump['model']} - {pump['price_sar']:,.0f} ريال")
+                
+                # حفظ التوصيات 
+                self.pump_recommendations = matches[:3]
+        except Exception as e:
+            lines.append("")
+            lines.append(f"⚠️ تعذر تحميل كتالوج المضخات: {e}")
+            self.pump_recommendations = []
+        self.root.after(0, self._update_text, "\n".join(lines))
+                # عرض التوصيات في نافذة منبثقة للتأكد
+        if hasattr(self, 'pump_recommendations') and self.pump_recommendations:
+            import tkinter.messagebox as mb
+            msg = "المضخات المقترحة:\n\n"
+            for i, pump in enumerate(self.pump_recommendations[:3], 1):
+                msg += f"{i}. {pump['manufacturer']} {pump['model']} - {pump['price_sar']:,.0f} ريال\n"
+            mb.showinfo("توصيات", msg)
+            
     def _update_text(self, text):
         """تحديث النص في الواجهة"""
+        self.result_text.delete(1.0, tk.END)  
         self.result_text.insert(tk.END, text)
     
     def _show_error(self, message):
